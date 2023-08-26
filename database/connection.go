@@ -8,16 +8,26 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var (
+	db *sql.DB
+)
+
 func Open() *sql.DB {
-	db, err := sql.Open("postgres", GetPsqlInfo())
+	pgdb, err := sql.Open("postgres", getPsqlInfo())
 	if err != nil {
 		panic(err)
 	}
 
+	db = pgdb
+
+	return pgdb
+}
+
+func Get() *sql.DB {
 	return db
 }
 
-func GetPsqlInfo() string {
+func getPsqlInfo() string {
 	dbMap := map[string]string{
 		"host":     os.Getenv("DB_HOST"),
 		"user":     os.Getenv("DB_USER"),

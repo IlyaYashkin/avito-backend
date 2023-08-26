@@ -1,6 +1,7 @@
 package main
 
 import (
+	"avito-backend/database"
 	"avito-backend/routes"
 	"log"
 
@@ -15,6 +16,9 @@ func init() {
 }
 
 func main() {
+	db := database.Open()
+	defer db.Close()
+
 	r := gin.Default()
 	routes.InitRoutes(r)
 	r.Run("localhost:8080")

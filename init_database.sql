@@ -27,3 +27,11 @@ create table user_segment (
                 on update restrict,
     unique (user_id, segment_id)
 );
+
+create table user_segment_log (
+    id integer primary key generated always as identity,
+    user_id integer,
+    segment_name varchar,
+    operation varchar,
+    operation_timestamp timestamp with time zone
+)

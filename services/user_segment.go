@@ -4,7 +4,6 @@ import (
 	"avito-backend/database"
 	"avito-backend/dtos"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,7 +15,7 @@ func UpdateUserSegments(requestData dtos.UpdateUserSegments) (map[int32]string, 
 	db := database.Open()
 	tx, err := db.Begin()
 	if err != nil {
-		return nil, nil, errors.New("begin transaction error")
+		return nil, nil, err
 	}
 	defer tx.Rollback()
 

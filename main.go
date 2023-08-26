@@ -17,5 +17,5 @@ func init() {
 func main() {
 	r := gin.Default()
 	routes.InitRoutes(r)
-	r.Run()
+	r.Run("localhost:8080")
 }

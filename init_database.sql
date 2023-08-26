@@ -2,19 +2,16 @@ DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
 create table users (
-	id serial primary key,
-	created_at timestamp with time zone
+	id int primary key
 );
 
 create table segments (
     id serial primary key,
-    created_at timestamp with time zone,
     name varchar
 );
 
 create table user_segment (
 	id serial primary key,
-	created_at timestamp with time zone,
 	user_id bigint,
 	segment_id bigint,
     constraint fk_user

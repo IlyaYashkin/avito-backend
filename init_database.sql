@@ -8,6 +8,8 @@ create table users (
 create table segments (
     id integer primary key generated always as identity,
     name varchar not null,
+    user_percentage decimal(5,2) check (user_percentage <= 100),
+    user_counter integer default 0,
     unique (name)
 );
 

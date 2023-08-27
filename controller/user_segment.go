@@ -26,10 +26,11 @@ func UpdateUserSegments(c *gin.Context) {
 		gin.H{
 			"status": "success",
 			"data": gin.H{
-				"message":                 "User segments updated",
-				"added_segments":          updatedUserSegments.AddedSegments,
-				"added_segments_with_ttl": updatedUserSegments.AddedSegmentsWithTtl,
-				"deleted_segments":        updatedUserSegments.DeletedSegments,
+				"message":                   "User segments updated",
+				"added_segments":            updatedUserSegments.AddedSegments,
+				"added_segments_ttl":        updatedUserSegments.AddedSegmentsTtl,
+				"added_segments_percentage": updatedUserSegments.AddedSegmentsTtl,
+				"deleted_segments":          updatedUserSegments.DeletedSegments,
 			},
 		},
 	)

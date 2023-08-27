@@ -10,7 +10,7 @@ import (
 func CreateSegment(requestData dto.UpdateSegment) error {
 	db := database.Get()
 
-	rowExists, err := checkSegmentExists(requestData.Name, db)
+	rowExists, err := isSegmentExists(requestData.Name, db)
 	if err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ func CreateSegment(requestData dto.UpdateSegment) error {
 func DeleteSegment(requestData dto.UpdateSegment) error {
 	db := database.Get()
 
-	rowExists, err := checkSegmentExists(requestData.Name, db)
+	rowExists, err := isSegmentExists(requestData.Name, db)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func DeleteSegment(requestData dto.UpdateSegment) error {
 	return err
 }
 
-func checkSegmentExists(name string, db *sql.DB) (bool, error) {
+func isSegmentExists(name string, db *sql.DB) (bool, error) {
 	var rowExists bool
 	err := db.QueryRow("select exists(select true from segments where name=$1)", name).Scan(&rowExists)
 	if err != nil {

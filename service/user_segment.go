@@ -58,7 +58,7 @@ func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments
 		return UpdatedUserSegments{}, err
 	}
 
-	addedSegmentsWithTtl, err := addUserSegmentsWithTtl(
+	addedSegmentsWithTtl, err := addUserTtlSegments(
 		requestData.UserId,
 		addSegmentsWithTtl,
 		tx,
@@ -155,7 +155,7 @@ func addUserSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string
 	return rsSegments, nil
 }
 
-func addUserSegmentsWithTtl(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
+func addUserTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
 	var segmentsWithTtlArr []string
 	for _, segmentTtl := range segmentsToAdd {
 		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.segment)
@@ -176,7 +176,7 @@ func addUserSegmentsWithTtl(userId int32, segmentsToAdd []requestSegmentWithTtl,
 		}
 	}
 
-	segments, timeTtls := sanitizeSegmentsTtls(segments, ttls, userSegments)
+	segments, timeTtls := sanitizeTtls(segments, ttls, userSegments)
 
 	if len(segments) == 0 {
 		return nil, nil
@@ -200,7 +200,7 @@ func addUserSegmentsWithTtl(userId int32, segmentsToAdd []requestSegmentWithTtl,
 	return rsSegments, nil
 }
 
-func sanitizeSegmentsTtls(segments map[int32]string, ttls map[int32]string, userSegments []userSegment) (map[int32]string, map[int32]time.Time) {
+func sanitizeTtls(segments map[int32]string, ttls map[int32]string, userSegments []userSegment) (map[int32]string, map[int32]time.Time) {
 	timeTtls := make(map[int32]time.Time)
 	userTimeTtls := getUserSegmentsTtlsMap(userSegments)
 
@@ -333,17 +333,6 @@ func getUserSegmentsTtlsMap(userSegments []userSegment) map[int32]time.Time {
 	return userSegmentsTtlsMap
 }
 
-func addInfoToLog(userId int32, segments map[int32]string, operation string, tx *sql.Tx) error {
-	sqlString, values := buildUserSegmentLogInsertString(userId, segments, operation)
-
-	_, err := tx.Exec(sqlString, values...)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func buildUserSegmentInsertString(userId int32, segments map[int32]string) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString("insert into user_segment (user_id, segment_id) values ")
@@ -383,22 +372,6 @@ func buildUserSegmentWithTtlInsertString(userId int32, segments map[int32]string
 	)
 
 	return sbSql.String(), values
-}
-
-func buildUserSegmentLogInsertString(userId int32, segments map[int32]string, operation string) (string, []interface{}) {
-	var sbSql strings.Builder
-	sbSql.WriteString("insert into user_segment_log (user_id, segment_name, operation, operation_timestamp) values ")
-	values := []interface{}{}
-	var i int32
-	i = 1
-	for segmentId := range segments {
-		values = append(values, userId, segmentId, operation, time.Now())
-		sbSql.WriteString(fmt.Sprintf("($%d,$%d,$%d,$%d),", i, i+1, i+2, i+3))
-		i += 4
-	}
-	sqlString := strings.TrimSuffix(sbSql.String(), ",")
-
-	return sqlString, values
 }
 
 func flipSegmentsMap(segments map[int32]string) map[string]int32 {

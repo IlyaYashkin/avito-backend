@@ -2,7 +2,7 @@ package main
 
 import (
 	"avito-backend/database"
-	"avito-backend/routes"
+	"avito-backend/router"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +20,6 @@ func main() {
 	defer db.Close()
 
 	r := gin.Default()
-	routes.InitRoutes(r)
+	router.InitRoutes(r)
 	r.Run("localhost:8080")
 }

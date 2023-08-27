@@ -1,4 +1,4 @@
-package dtos
+package dto
 
 type UpdateUserSegments struct {
 	UserId         int32    `json:"user_id" binding:"required"`

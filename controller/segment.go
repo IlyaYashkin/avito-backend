@@ -1,21 +1,21 @@
-package controllers
+package controller
 
 import (
-	"avito-backend/dtos"
-	"avito-backend/services"
+	"avito-backend/dto"
+	"avito-backend/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateSegment(c *gin.Context) {
-	var requestData dtos.UpdateSegment
+	var requestData dto.UpdateSegment
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": "bind json error"}})
 		return
 	}
 
-	err := services.CreateSegment(requestData)
+	err := service.CreateSegment(requestData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
 		return
@@ -34,13 +34,13 @@ func CreateSegment(c *gin.Context) {
 }
 
 func DeleteSegment(c *gin.Context) {
-	var requestData dtos.UpdateSegment
+	var requestData dto.UpdateSegment
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": "bind json error"}})
 		return
 	}
 
-	err := services.DeleteSegment(requestData)
+	err := service.DeleteSegment(requestData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
 		return

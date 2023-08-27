@@ -1,13 +1,13 @@
-package services
+package service
 
 import (
 	"avito-backend/database"
-	"avito-backend/dtos"
+	"avito-backend/dto"
 	"database/sql"
 	"errors"
 )
 
-func CreateSegment(requestData dtos.UpdateSegment) error {
+func CreateSegment(requestData dto.UpdateSegment) error {
 	db := database.Get()
 
 	rowExists, err := checkSegmentExists(requestData.Name, db)
@@ -26,7 +26,7 @@ func CreateSegment(requestData dtos.UpdateSegment) error {
 	return err
 }
 
-func DeleteSegment(requestData dtos.UpdateSegment) error {
+func DeleteSegment(requestData dto.UpdateSegment) error {
 	db := database.Get()
 
 	rowExists, err := checkSegmentExists(requestData.Name, db)

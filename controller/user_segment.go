@@ -1,21 +1,21 @@
-package controllers
+package controller
 
 import (
-	"avito-backend/dtos"
-	"avito-backend/services"
+	"avito-backend/dto"
+	"avito-backend/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func UpdateUserSegments(c *gin.Context) {
-	var requestData dtos.UpdateUserSegments
+	var requestData dto.UpdateUserSegments
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": "bind json error"}})
 		return
 	}
 
-	updatedUserSegments, err := services.UpdateUserSegments(requestData)
+	updatedUserSegments, err := service.UpdateUserSegments(requestData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
 		return

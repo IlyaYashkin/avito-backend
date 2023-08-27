@@ -1,8 +1,8 @@
-package services
+package service
 
 import (
 	"avito-backend/database"
-	"avito-backend/dtos"
+	"avito-backend/dto"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -34,7 +34,7 @@ type UpdatedUserSegments struct {
 
 const ttlTimeFormat = time.RFC3339
 
-func UpdateUserSegments(requestData dtos.UpdateUserSegments) (UpdatedUserSegments, error) {
+func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments, error) {
 	db := database.Open()
 	tx, err := db.Begin()
 	if err != nil {

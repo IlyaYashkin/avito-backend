@@ -7,14 +7,15 @@ create table users (
 
 create table segments (
     id integer primary key generated always as identity,
-    name varchar,
+    name varchar not null,
     unique (name)
 );
 
 create table user_segment (
 	id integer primary key generated always as identity,
-	user_id bigint,
-	segment_id bigint,
+	user_id bigint not null,
+	segment_id bigint not null,
+    ttl timestamp,
     constraint fk_user
         foreign key (user_id)
             references users (id)
@@ -33,5 +34,5 @@ create table user_segment_log (
     user_id integer,
     segment_name varchar,
     operation varchar,
-    operation_timestamp timestamp with time zone
+    operation_timestamp timestamp
 )

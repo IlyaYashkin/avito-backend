@@ -49,7 +49,7 @@ func checkSegmentExists(name string, db *sql.DB) (bool, error) {
 	var rowExists bool
 	err := db.QueryRow("select exists(select true from segments where name=$1)", name).Scan(&rowExists)
 	if err != nil {
-		return rowExists, errors.New("query error")
+		return rowExists, err
 	}
 	return rowExists, nil
 }
@@ -57,7 +57,7 @@ func checkSegmentExists(name string, db *sql.DB) (bool, error) {
 func insertSegment(name string, db *sql.DB) error {
 	_, err := db.Exec("insert into segments (name) values ($1)", name)
 	if err != nil {
-		return errors.New("insert error")
+		return err
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func insertSegment(name string, db *sql.DB) error {
 func deleteSegment(name string, db *sql.DB) error {
 	_, err := db.Exec("delete from segments values where name = $1", name)
 	if err != nil {
-		return errors.New("delete error")
+		return err
 	}
 	return nil
 }

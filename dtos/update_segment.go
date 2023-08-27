@@ -1,5 +1,5 @@
 package dtos
 
 type UpdateSegment struct {
-	Name string `json:"name"`
+	Name string `json:"name" binding:"required"`
 }

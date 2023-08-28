@@ -12,6 +12,12 @@ var (
 	db *sql.DB
 )
 
+type QueryExecutor interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 func Open() *sql.DB {
 	pgdb, err := sql.Open("postgres", getPsqlInfo())
 	if err != nil {

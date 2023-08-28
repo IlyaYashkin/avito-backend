@@ -1,6 +1,8 @@
-package dbaccess
+package segmentpercentage
 
-func InsertSegmentPercentage(segmentId int32, userPercentage float32, ex QueryExecutor) error {
+import "avito-backend/internal/database"
+
+func InsertSegmentPercentage(segmentId int32, userPercentage float32, ex database.QueryExecutor) error {
 	_, err := ex.Exec("insert into segment_percentage (segment_id, user_percentage) values ($1, $2)", segmentId, userPercentage)
 	if err != nil {
 		return err
@@ -8,7 +10,7 @@ func InsertSegmentPercentage(segmentId int32, userPercentage float32, ex QueryEx
 	return nil
 }
 
-func IncrementCounters(ex QueryExecutor) error {
+func IncrementCounters(ex database.QueryExecutor) error {
 	_, err := ex.Exec( /* sql */ `
 		update segment_percentage
 		set user_counter = user_counter + 1
@@ -20,7 +22,7 @@ func IncrementCounters(ex QueryExecutor) error {
 	return nil
 }
 
-func PickSegments(ex QueryExecutor) ([]int32, error) {
+func PickSegments(ex database.QueryExecutor) ([]int32, error) {
 	rows, err := ex.Query( /* sql */ `
 		update segment_percentage
 		set user_counter = user_counter - 100 / user_percentage

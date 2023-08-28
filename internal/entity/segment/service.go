@@ -1,13 +1,12 @@
-package service
+package segment
 
 import (
-	"avito-backend/database"
-	"avito-backend/database/dbaccess"
-	"avito-backend/dto"
+	"avito-backend/internal/database"
+	"avito-backend/internal/entity/segmentpercentage"
 	"errors"
 )
 
-func CreateSegment(requestData dto.UpdateSegment) error {
+func createSegment(requestData RequestUpdateSegment) error {
 	db := database.Get()
 	tx, err := db.Begin()
 	if err != nil {
@@ -15,7 +14,7 @@ func CreateSegment(requestData dto.UpdateSegment) error {
 	}
 	defer tx.Rollback()
 
-	rowExists, err := dbaccess.IsSegmentExists(requestData.Name, tx)
+	rowExists, err := IsSegExists(requestData.Name, tx)
 	if err != nil {
 		return err
 	}
@@ -23,11 +22,11 @@ func CreateSegment(requestData dto.UpdateSegment) error {
 		return errors.New("segment with this name already exists")
 	}
 
-	segmentId, err := dbaccess.InsertSegment(requestData.Name, tx)
+	segmentId, err := InsSeg(requestData.Name, tx)
 	if err != nil {
 		return err
 	}
-	err = dbaccess.InsertSegmentPercentage(segmentId, requestData.UserPercentage, tx)
+	err = segmentpercentage.InsertSegmentPercentage(segmentId, requestData.UserPercentage, tx)
 	if err != nil {
 		return err
 	}
@@ -40,10 +39,10 @@ func CreateSegment(requestData dto.UpdateSegment) error {
 	return err
 }
 
-func DeleteSegment(requestData dto.UpdateSegment) error {
+func deleteSegment(requestData RequestUpdateSegment) error {
 	db := database.Get()
 
-	rowExists, err := dbaccess.IsSegmentExists(requestData.Name, db)
+	rowExists, err := IsSegExists(requestData.Name, db)
 	if err != nil {
 		return err
 	}
@@ -51,7 +50,7 @@ func DeleteSegment(requestData dto.UpdateSegment) error {
 		return errors.New("segment with this name not exists")
 	}
 
-	err = dbaccess.DeleteSegment(requestData.Name, db)
+	err = DelSeg(requestData.Name, db)
 	if err != nil {
 		return err
 	}

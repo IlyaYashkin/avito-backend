@@ -1,6 +1,8 @@
-package dbaccess
+package segment
 
-func IsSegmentExists(name string, ex QueryExecutor) (bool, error) {
+import "avito-backend/internal/database"
+
+func IsSegExists(name string, ex database.QueryExecutor) (bool, error) {
 	var rowExists bool
 	err := ex.QueryRow( /* sql */ `select exists(select true from segments where name=$1)`, name).Scan(&rowExists)
 	if err != nil {
@@ -9,7 +11,7 @@ func IsSegmentExists(name string, ex QueryExecutor) (bool, error) {
 	return rowExists, nil
 }
 
-func InsertSegment(name string, ex QueryExecutor) (int32, error) {
+func InsSeg(name string, ex database.QueryExecutor) (int32, error) {
 	segmentId := 0
 	err := ex.QueryRow( /* sql */ `insert into segments (name) values ($1) returning id`, name).Scan(&segmentId)
 	if err != nil {
@@ -18,7 +20,7 @@ func InsertSegment(name string, ex QueryExecutor) (int32, error) {
 	return int32(segmentId), nil
 }
 
-func DeleteSegment(name string, ex QueryExecutor) error {
+func DelSeg(name string, ex database.QueryExecutor) error {
 	_, err := ex.Exec( /* sql */ `delete from segments values where name = $1`, name)
 	if err != nil {
 		return err

@@ -1,15 +1,14 @@
-package dbaccess
+package usersegment
 
 import (
-	"avito-backend/database"
-	"avito-backend/model"
+	"avito-backend/internal/database"
 	"database/sql"
 	"time"
 
 	"github.com/lib/pq"
 )
 
-func GetMatchedSegments(segments []string, ex QueryExecutor) (map[int32]string, error) {
+func GetMatchedSegments(segments []string, ex database.QueryExecutor) (map[int32]string, error) {
 	rows, err := ex.Query("select id, name from segments where name = ANY($1)", pq.Array(segments))
 	if err != nil {
 		return nil, err
@@ -35,14 +34,14 @@ func GetMatchedSegments(segments []string, ex QueryExecutor) (map[int32]string, 
 	return segmentsMap, nil
 }
 
-func GetUsrSegments(userId int32, ex QueryExecutor) ([]model.UserSegment, error) {
+func GetUsrSegments(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
 	rows, err := ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var userSegments []model.UserSegment
+	var userSegments []UserSegment
 
 	for rows.Next() {
 		var segment_id int32
@@ -51,7 +50,7 @@ func GetUsrSegments(userId int32, ex QueryExecutor) ([]model.UserSegment, error)
 		if err != nil {
 			return nil, err
 		}
-		userSegments = append(userSegments, model.UserSegment{SegmentId: segment_id, Ttl: ttl.String})
+		userSegments = append(userSegments, UserSegment{SegmentId: segment_id, Ttl: ttl.String})
 	}
 
 	if err = rows.Err(); err != nil {
@@ -61,8 +60,8 @@ func GetUsrSegments(userId int32, ex QueryExecutor) ([]model.UserSegment, error)
 	return userSegments, nil
 }
 
-func InsertUsrSegments(userId int32, segments []int32, ex QueryExecutor) error {
-	sqlString, values := database.BuildUserSegmentInsertString(userId, segments)
+func InsUsrSeg(userId int32, segments []int32, ex database.QueryExecutor) error {
+	sqlString, values := BuildUserSegmentInsertString(userId, segments)
 	_, err := ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
@@ -70,8 +69,8 @@ func InsertUsrSegments(userId int32, segments []int32, ex QueryExecutor) error {
 	return nil
 }
 
-func InsertUsrSegmentsTtl(userId int32, segments map[int32]string, ttls map[int32]time.Time, ex QueryExecutor) error {
-	sqlString, values := database.BuildUserSegmentTtlInsertString(userId, segments, ttls)
+func InsUsrTtlSeg(userId int32, segments map[int32]string, ttls map[int32]time.Time, ex database.QueryExecutor) error {
+	sqlString, values := BuildUserSegmentTtlInsertString(userId, segments, ttls)
 	_, err := ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
@@ -79,7 +78,7 @@ func InsertUsrSegmentsTtl(userId int32, segments map[int32]string, ttls map[int3
 	return nil
 }
 
-func DeleteUsrSegments(userId int32, segmentsIds []int32, ex QueryExecutor) error {
+func DelUsrSeg(userId int32, segmentsIds []int32, ex database.QueryExecutor) error {
 	sqlString := "delete from user_segment where user_id = $1 and segment_id = ANY($2)"
 	_, err := ex.Exec(sqlString, userId, pq.Array(segmentsIds))
 	if err != nil {

@@ -1,10 +1,11 @@
-package dbaccess
+package user
 
 import (
+	"avito-backend/internal/database"
 	"errors"
 )
 
-func InsertUser(userId int32, ex QueryExecutor) (bool, error) {
+func InsertUser(userId int32, ex database.QueryExecutor) (bool, error) {
 	result, err := ex.Exec("insert into users (id) values ($1) on conflict (id) do nothing", userId)
 	if err != nil {
 		return false, errors.New("insert user error")

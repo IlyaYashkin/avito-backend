@@ -1,13 +1,20 @@
-package service
+package usersegment
 
 import (
-	"avito-backend/database"
-	"avito-backend/database/dbaccess"
-	"avito-backend/dto"
-	"avito-backend/model"
+	"avito-backend/internal/database"
+	"avito-backend/internal/entity/segmentpercentage"
+	"avito-backend/internal/entity/user"
+	"avito-backend/internal/entity/usersegmentlog"
 	"database/sql"
 	"time"
 )
+
+type UserSegment struct {
+	Id        int32
+	UserId    int32
+	SegmentId int32
+	Ttl       string
+}
 
 type UpdatedUserSegments struct {
 	AddedSegments           []string
@@ -23,7 +30,7 @@ type requestSegmentWithTtl struct {
 
 const ttlTimeFormat = time.RFC3339
 
-func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments, error) {
+func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegments, error) {
 	db := database.Open()
 	tx, err := db.Begin()
 	if err != nil {
@@ -31,7 +38,7 @@ func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments
 	}
 	defer tx.Rollback()
 
-	isUsrInserted, err := dbaccess.InsertUser(requestData.UserId, tx)
+	isUsrInserted, err := user.InsertUser(requestData.UserId, tx)
 	if err != nil {
 		return UpdatedUserSegments{}, err
 	}
@@ -110,11 +117,11 @@ func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
 }
 
 func addPercentageSegments(userId int32, tx *sql.Tx) ([]string, error) {
-	err := dbaccess.IncrementCounters(tx)
+	err := segmentpercentage.IncrementCounters(tx)
 	if err != nil {
 		return nil, err
 	}
-	segments, err := dbaccess.PickSegments(tx)
+	segments, err := segmentpercentage.PickSegments(tx)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +130,7 @@ func addPercentageSegments(userId int32, tx *sql.Tx) ([]string, error) {
 		return nil, nil
 	}
 
-	err = dbaccess.InsertUsrSegments(userId, segments, tx)
+	err = InsUsrSeg(userId, segments, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -136,11 +143,11 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		return nil, nil
 	}
 
-	segments, err := dbaccess.GetMatchedSegments(segmentsToAdd, tx)
+	segments, err := GetMatchedSegments(segmentsToAdd, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := dbaccess.GetUsrSegments(userId, tx)
+	userSegments, err := GetUsrSegments(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -160,12 +167,12 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		segmentsIds = append(segmentsIds, id)
 	}
 
-	err = dbaccess.InsertUsrSegments(userId, segmentsIds, tx)
+	err = InsUsrSeg(userId, segmentsIds, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = dbaccess.InsertLog(userId, segments, "addition", tx)
+	err = usersegmentlog.InsertLog(userId, segments, "addition", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -188,11 +195,11 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	for _, segmentTtl := range segmentsToAdd {
 		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.segment)
 	}
-	segments, err := dbaccess.GetMatchedSegments(segmentsWithTtlArr, tx)
+	segments, err := GetMatchedSegments(segmentsWithTtlArr, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := dbaccess.GetUsrSegments(userId, tx)
+	userSegments, err := GetUsrSegments(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -210,12 +217,12 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 		return nil, nil
 	}
 
-	err = dbaccess.InsertUsrSegmentsTtl(userId, segments, timeTtls, tx)
+	err = InsUsrTtlSeg(userId, segments, timeTtls, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = dbaccess.InsertLog(userId, segments, "addition", tx)
+	err = usersegmentlog.InsertLog(userId, segments, "addition", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +234,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	return rsSegments, nil
 }
 
-func sanitizeTtls(segments map[int32]string, ttls map[int32]string, userSegments []model.UserSegment) (map[int32]string, map[int32]time.Time) {
+func sanitizeTtls(segments map[int32]string, ttls map[int32]string, userSegments []UserSegment) (map[int32]string, map[int32]time.Time) {
 	timeTtls := make(map[int32]time.Time)
 	userTimeTtls := getUserSegmentsTtlsMap(userSegments)
 
@@ -252,11 +259,11 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 		return nil, nil
 	}
 
-	segments, err := dbaccess.GetMatchedSegments(segmentsToDelete, tx)
+	segments, err := GetMatchedSegments(segmentsToDelete, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := dbaccess.GetUsrSegments(userId, tx)
+	userSegments, err := GetUsrSegments(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -275,12 +282,12 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 	for i := range segments {
 		segmentsIdsToDelete = append(segmentsIdsToDelete, i)
 	}
-	err = dbaccess.DeleteUsrSegments(userId, segmentsIdsToDelete, tx)
+	err = DelUsrSeg(userId, segmentsIdsToDelete, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = dbaccess.InsertLog(userId, segments, "deletion", tx)
+	err = usersegmentlog.InsertLog(userId, segments, "deletion", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +301,7 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 	return rsSegments, nil
 }
 
-func getUserSegmentsIds(userSegments []model.UserSegment) []int32 {
+func getUserSegmentsIds(userSegments []UserSegment) []int32 {
 	var userSegmentsIds []int32
 	for _, userSegment := range userSegments {
 		userSegmentsIds = append(userSegmentsIds, userSegment.SegmentId)
@@ -302,7 +309,7 @@ func getUserSegmentsIds(userSegments []model.UserSegment) []int32 {
 	return userSegmentsIds
 }
 
-func getUserSegmentsTtlsMap(userSegments []model.UserSegment) map[int32]time.Time {
+func getUserSegmentsTtlsMap(userSegments []UserSegment) map[int32]time.Time {
 	userSegmentsTtlsMap := make(map[int32]time.Time, len(userSegments))
 	for _, userSegment := range userSegments {
 		ttlTime, _ := time.Parse(ttlTimeFormat, userSegment.Ttl)

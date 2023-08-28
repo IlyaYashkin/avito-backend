@@ -43,45 +43,42 @@ func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments
 		}
 	}
 
-	// segments, segmentsTtl := splitSegments(requestData.AddSegments)
-	// addedSegments, err := addSegments(
-	// 	requestData.UserId,
-	// 	segments,
-	// 	tx,
-	// )
-	// if err != nil {
-	// 	return UpdatedUserSegments{}, err
-	// }
-	// addedTtlSegments, err := addTtlSegments(
-	// 	requestData.UserId,
-	// 	segmentsTtl,
-	// 	tx,
-	// )
-	// if err != nil {
-	// 	return UpdatedUserSegments{}, err
-	// }
+	segments, segmentsTtl := splitSegments(requestData.AddSegments)
+	addedSegments, err := addSegments(
+		requestData.UserId,
+		segments,
+		tx,
+	)
+	if err != nil {
+		return UpdatedUserSegments{}, err
+	}
+	addedTtlSegments, err := addTtlSegments(
+		requestData.UserId,
+		segmentsTtl,
+		tx,
+	)
+	if err != nil {
+		return UpdatedUserSegments{}, err
+	}
 
-	// deletedSegments, err := deleteSegments(
-	// 	requestData.UserId,
-	// 	requestData.DeleteSegments,
-	// 	tx,
-	// )
-	// if err != nil {
-	// 	return UpdatedUserSegments{}, err
-	// }
+	deletedSegments, err := deleteSegments(
+		requestData.UserId,
+		requestData.DeleteSegments,
+		tx,
+	)
+	if err != nil {
+		return UpdatedUserSegments{}, err
+	}
 
 	tx.Commit()
 
-	// updatedUserSegments := UpdatedUserSegments{
-	// 	AddedSegments:           addedSegments,
-	// 	AddedSegmentsTtl:        addedTtlSegments,
-	// 	AddedSegmentsPercentage: addedPercentageSegments,
-	// 	DeletedSegments:         deletedSegments,
-	// }
+	updatedUserSegments := UpdatedUserSegments{
+		AddedSegments:    addedSegments,
+		AddedSegmentsTtl: addedTtlSegments,
+		DeletedSegments:  deletedSegments,
+	}
 
-	// return updatedUserSegments, nil
-
-	return UpdatedUserSegments{}, nil
+	return updatedUserSegments, nil
 }
 
 func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {

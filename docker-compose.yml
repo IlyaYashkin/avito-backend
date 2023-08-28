@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    environment:
+      DB_URL: postgres://avito:avito@db/avito?sslmode=disable
+    
+  db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: avito
+      POSTGRES_DB: avito
+      POSTGRES_PASSWORD: avito
+    ports:
+      - 5432:5432

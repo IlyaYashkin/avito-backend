@@ -2,15 +2,12 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
-var (
-	db *sql.DB
-)
+var db *sql.DB
 
 type QueryExecutor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -19,7 +16,7 @@ type QueryExecutor interface {
 }
 
 func Open() *sql.DB {
-	pgdb, err := sql.Open("postgres", getPsqlInfo())
+	pgdb, err := sql.Open("postgres", os.Getenv("DB_URL"))
 	if err != nil {
 		panic(err)
 	}
@@ -31,24 +28,4 @@ func Open() *sql.DB {
 
 func Get() *sql.DB {
 	return db
-}
-
-func getPsqlInfo() string {
-	dbMap := map[string]string{
-		"host":     os.Getenv("DB_HOST"),
-		"user":     os.Getenv("DB_USER"),
-		"password": os.Getenv("DB_PASSWORD"),
-		"dbname":   os.Getenv("DB_NAME"),
-		"port":     os.Getenv("DB_PORT"),
-		"sslmode":  os.Getenv("DB_SSLMODE"),
-		"TimeZone": os.Getenv("DB_TIMEZONE"),
-	}
-
-	var psqlInfo string
-
-	for key, element := range dbMap {
-		psqlInfo += fmt.Sprintf("%s=%s ", key, element)
-	}
-
-	return psqlInfo
 }

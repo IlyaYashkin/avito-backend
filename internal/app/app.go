@@ -4,23 +4,17 @@ import (
 	"avito-backend/internal/database"
 	"avito-backend/internal/entity/segment"
 	"avito-backend/internal/entity/usersegment"
-	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 func Start() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
-	}
-
 	db := database.Open()
 	defer db.Close()
 
 	r := gin.Default()
 	initRoutes(r)
-	r.Run("localhost:8080")
+	r.Run("0.0.0.0:8080")
 }
 
 func initRoutes(r *gin.Engine) {

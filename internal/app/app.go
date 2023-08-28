@@ -12,13 +12,12 @@ func Start() {
 	db := database.Open()
 	defer db.Close()
 
-	r := gin.Default()
-	initRoutes(r)
-	r.Run("0.0.0.0:8080")
-}
+	engine := gin.Default()
+	engine.SetTrustedProxies(nil)
 
-func initRoutes(r *gin.Engine) {
-	r.POST("/create-segment", segment.CreateSegment)
-	r.DELETE("/delete-segment", segment.DeleteSegment)
-	r.POST("/add-segments-to-user", usersegment.UpdateUserSegments)
+	engine.POST("/create-segment", segment.CreateSegment)
+	engine.DELETE("/delete-segment", segment.DeleteSegment)
+	engine.POST("/add-segments-to-user", usersegment.UpdateUserSegments)
+
+	engine.Run("0.0.0.0:8080")
 }

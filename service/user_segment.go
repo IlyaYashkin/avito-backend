@@ -31,53 +31,57 @@ func UpdateUserSegments(requestData dto.UpdateUserSegments) (UpdatedUserSegments
 	}
 	defer tx.Rollback()
 
-	err = dbaccess.InsertUser(requestData.UserId, tx)
+	isUsrInserted, err := dbaccess.InsertUser(requestData.UserId, tx)
 	if err != nil {
 		return UpdatedUserSegments{}, err
 	}
 
-	addedSegmentsPercentage, err := addSegmentsPercentage(requestData.UserId, tx)
-	if err != nil {
-		return UpdatedUserSegments{}, err
+	if isUsrInserted {
+		_, err = addPercentageSegments(requestData.UserId, tx)
+		if err != nil {
+			return UpdatedUserSegments{}, err
+		}
 	}
 
-	segments, segmentsTtl := splitSegments(requestData.AddSegments)
-	addedSegments, err := addSegments(
-		requestData.UserId,
-		segments,
-		tx,
-	)
-	if err != nil {
-		return UpdatedUserSegments{}, err
-	}
-	addedSegmentsTtl, err := addSegmentsTtl(
-		requestData.UserId,
-		segmentsTtl,
-		tx,
-	)
-	if err != nil {
-		return UpdatedUserSegments{}, err
-	}
+	// segments, segmentsTtl := splitSegments(requestData.AddSegments)
+	// addedSegments, err := addSegments(
+	// 	requestData.UserId,
+	// 	segments,
+	// 	tx,
+	// )
+	// if err != nil {
+	// 	return UpdatedUserSegments{}, err
+	// }
+	// addedTtlSegments, err := addTtlSegments(
+	// 	requestData.UserId,
+	// 	segmentsTtl,
+	// 	tx,
+	// )
+	// if err != nil {
+	// 	return UpdatedUserSegments{}, err
+	// }
 
-	deletedSegments, err := deleteSegments(
-		requestData.UserId,
-		requestData.DeleteSegments,
-		tx,
-	)
-	if err != nil {
-		return UpdatedUserSegments{}, err
-	}
+	// deletedSegments, err := deleteSegments(
+	// 	requestData.UserId,
+	// 	requestData.DeleteSegments,
+	// 	tx,
+	// )
+	// if err != nil {
+	// 	return UpdatedUserSegments{}, err
+	// }
 
 	tx.Commit()
 
-	updatedUserSegments := UpdatedUserSegments{
-		AddedSegments:           addedSegments,
-		AddedSegmentsTtl:        addedSegmentsTtl,
-		AddedSegmentsPercentage: addedSegmentsPercentage,
-		DeletedSegments:         deletedSegments,
-	}
+	// updatedUserSegments := UpdatedUserSegments{
+	// 	AddedSegments:           addedSegments,
+	// 	AddedSegmentsTtl:        addedTtlSegments,
+	// 	AddedSegmentsPercentage: addedPercentageSegments,
+	// 	DeletedSegments:         deletedSegments,
+	// }
 
-	return updatedUserSegments, nil
+	// return updatedUserSegments, nil
+
+	return UpdatedUserSegments{}, nil
 }
 
 func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
@@ -108,7 +112,24 @@ func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
 	return addSegments, addSegmentsWithTtl
 }
 
-func addSegmentsPercentage(userId int32, tx *sql.Tx) ([]string, error) {
+func addPercentageSegments(userId int32, tx *sql.Tx) ([]string, error) {
+	err := dbaccess.IncrementCounters(tx)
+	if err != nil {
+		return nil, err
+	}
+	segments, err := dbaccess.PickSegments(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(segments) == 0 {
+		return nil, nil
+	}
+
+	err = dbaccess.InsertUsrSegments(userId, segments, tx)
+	if err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }
@@ -137,7 +158,12 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		return nil, nil
 	}
 
-	err = dbaccess.InsertUsrSegments(userId, segments, tx)
+	var segmentsIds []int32
+	for id := range segments {
+		segmentsIds = append(segmentsIds, id)
+	}
+
+	err = dbaccess.InsertUsrSegments(userId, segmentsIds, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +182,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 	return rsSegments, nil
 }
 
-func addSegmentsTtl(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
+func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
 	if len(segmentsToAdd) == 0 {
 		return nil, nil
 	}

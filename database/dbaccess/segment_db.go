@@ -2,23 +2,24 @@ package dbaccess
 
 func IsSegmentExists(name string, ex QueryExecutor) (bool, error) {
 	var rowExists bool
-	err := ex.QueryRow("select exists(select true from segments where name=$1)", name).Scan(&rowExists)
+	err := ex.QueryRow( /* sql */ `select exists(select true from segments where name=$1)`, name).Scan(&rowExists)
 	if err != nil {
 		return rowExists, err
 	}
 	return rowExists, nil
 }
 
-func InsertSegment(name string, userPercentage float32, ex QueryExecutor) error {
-	_, err := ex.Exec("insert into segments (name, user_percentage) values ($1, $2)", name, userPercentage)
+func InsertSegment(name string, ex QueryExecutor) (int32, error) {
+	segmentId := 0
+	err := ex.QueryRow( /* sql */ `insert into segments (name) values ($1) returning id`, name).Scan(&segmentId)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return int32(segmentId), nil
 }
 
 func DeleteSegment(name string, ex QueryExecutor) error {
-	_, err := ex.Exec("delete from segments values where name = $1", name)
+	_, err := ex.Exec( /* sql */ `delete from segments values where name = $1`, name)
 	if err != nil {
 		return err
 	}

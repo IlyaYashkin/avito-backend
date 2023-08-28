@@ -8,15 +8,13 @@ create table users (
 create table segments (
     id integer primary key generated always as identity,
     name varchar not null,
-    user_percentage decimal(5,2) check (user_percentage <= 100),
-    user_counter integer default 0,
     unique (name)
 );
 
 create table user_segment (
 	id integer primary key generated always as identity,
-	user_id bigint not null,
-	segment_id bigint not null,
+	user_id integer not null,
+	segment_id integer not null,
     ttl timestamp,
     constraint fk_user
         foreign key (user_id)
@@ -37,4 +35,17 @@ create table user_segment_log (
     segment_name varchar,
     operation varchar,
     operation_timestamp timestamp
-)
+);
+
+create table segment_percentage (
+    id integer primary key generated always as identity,
+    segment_id integer not null,
+    user_percentage decimal(5,2) check (user_percentage <= 100 and user_percentage >= 0.01),
+    user_counter decimal(7,2) default 0,
+    constraint fk_segment
+        foreign key (segment_id)
+            references segments (id)
+                on delete cascade
+                on update cascade,
+    unique(segment_id)
+);

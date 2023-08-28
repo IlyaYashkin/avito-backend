@@ -9,8 +9,13 @@ import (
 
 func CreateSegment(requestData dto.UpdateSegment) error {
 	db := database.Get()
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-	rowExists, err := dbaccess.IsSegmentExists(requestData.Name, db)
+	rowExists, err := dbaccess.IsSegmentExists(requestData.Name, tx)
 	if err != nil {
 		return err
 	}
@@ -18,7 +23,16 @@ func CreateSegment(requestData dto.UpdateSegment) error {
 		return errors.New("segment with this name already exists")
 	}
 
-	err = dbaccess.InsertSegment(requestData.Name, requestData.UserPercentage, db)
+	segmentId, err := dbaccess.InsertSegment(requestData.Name, tx)
+	if err != nil {
+		return err
+	}
+	err = dbaccess.InsertSegmentPercentage(segmentId, requestData.UserPercentage, tx)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}

@@ -61,7 +61,7 @@ func GetUsrSegments(userId int32, ex QueryExecutor) ([]model.UserSegment, error)
 	return userSegments, nil
 }
 
-func InsertUsrSegments(userId int32, segments map[int32]string, ex QueryExecutor) error {
+func InsertUsrSegments(userId int32, segments []int32, ex QueryExecutor) error {
 	sqlString, values := database.BuildUserSegmentInsertString(userId, segments)
 	_, err := ex.Exec(sqlString, values...)
 	if err != nil {

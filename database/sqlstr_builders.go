@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-func BuildUserSegmentInsertString(userId int32, segments map[int32]string) (string, []interface{}) {
+func BuildUserSegmentInsertString(userId int32, segments []int32) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString("insert into user_segment (user_id, segment_id) values ")
 	values := []interface{}{}
 	var i int32
 	i = 1
-	for segmentId := range segments {
+	for _, segmentId := range segments {
 		values = append(values, userId, segmentId)
 		sbSql.WriteString(fmt.Sprintf("($%d,$%d),", i, i+1))
 		i += 2

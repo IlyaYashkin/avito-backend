@@ -14,7 +14,7 @@ func createSegment(requestData RequestUpdateSegment) error {
 	}
 	defer tx.Rollback()
 
-	rowExists, err := IsSegExists(requestData.Name, tx)
+	rowExists, err := IsSegmentExists(requestData.Name, tx)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func createSegment(requestData RequestUpdateSegment) error {
 		return errors.New("segment with this name already exists")
 	}
 
-	segmentId, err := InsSeg(requestData.Name, tx)
+	segmentId, err := InsertSegment(requestData.Name, tx)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func createSegment(requestData RequestUpdateSegment) error {
 func deleteSegment(requestData RequestUpdateSegment) error {
 	db := database.Get()
 
-	rowExists, err := IsSegExists(requestData.Name, db)
+	rowExists, err := IsSegmentExists(requestData.Name, db)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func deleteSegment(requestData RequestUpdateSegment) error {
 		return errors.New("segment with this name not exists")
 	}
 
-	err = DelSeg(requestData.Name, db)
+	err = DelSegment(requestData.Name, db)
 	if err != nil {
 		return err
 	}

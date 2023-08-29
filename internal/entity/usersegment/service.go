@@ -130,7 +130,7 @@ func addPercentageSegments(userId int32, tx *sql.Tx) ([]string, error) {
 		return nil, nil
 	}
 
-	err = InsUsrSeg(userId, segments, tx)
+	err = InsertUserSegment(userId, segments, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +143,11 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		return nil, nil
 	}
 
-	segments, err := GetMatchedSegments(segmentsToAdd, tx)
+	segments, err := SelectSegmentsByName(segmentsToAdd, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUsrSegments(userId, tx)
+	userSegments, err := GetUserSegmentsById(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		segmentsIds = append(segmentsIds, id)
 	}
 
-	err = InsUsrSeg(userId, segmentsIds, tx)
+	err = InsertUserSegment(userId, segmentsIds, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -195,11 +195,11 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	for _, segmentTtl := range segmentsToAdd {
 		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.segment)
 	}
-	segments, err := GetMatchedSegments(segmentsWithTtlArr, tx)
+	segments, err := SelectSegmentsByName(segmentsWithTtlArr, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUsrSegments(userId, tx)
+	userSegments, err := GetUserSegmentsById(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 		return nil, nil
 	}
 
-	err = InsUsrTtlSeg(userId, segments, timeTtls, tx)
+	err = InsertUserTtlSegment(userId, segments, timeTtls, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -259,11 +259,11 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 		return nil, nil
 	}
 
-	segments, err := GetMatchedSegments(segmentsToDelete, tx)
+	segments, err := SelectSegmentsByName(segmentsToDelete, tx)
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUsrSegments(userId, tx)
+	userSegments, err := GetUserSegmentsById(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 	for i := range segments {
 		segmentsIdsToDelete = append(segmentsIdsToDelete, i)
 	}
-	err = DelUsrSeg(userId, segmentsIdsToDelete, tx)
+	err = DeleteUserSegment(userId, segmentsIdsToDelete, tx)
 	if err != nil {
 		return nil, err
 	}

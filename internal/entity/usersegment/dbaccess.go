@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func GetMatchedSegments(segments []string, ex database.QueryExecutor) (map[int32]string, error) {
+func SelectSegmentsByName(segments []string, ex database.QueryExecutor) (map[int32]string, error) {
 	rows, err := ex.Query("select id, name from segments where name = ANY($1)", pq.Array(segments))
 	if err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func GetMatchedSegments(segments []string, ex database.QueryExecutor) (map[int32
 	return segmentsMap, nil
 }
 
-func GetUsrSegments(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
+func GetUserSegmentsById(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
 	rows, err := ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func GetUsrSegments(userId int32, ex database.QueryExecutor) ([]UserSegment, err
 	return userSegments, nil
 }
 
-func InsUsrSeg(userId int32, segments []int32, ex database.QueryExecutor) error {
+func InsertUserSegment(userId int32, segments []int32, ex database.QueryExecutor) error {
 	sqlString, values := BuildUserSegmentInsertString(userId, segments)
 	_, err := ex.Exec(sqlString, values...)
 	if err != nil {
@@ -69,7 +69,7 @@ func InsUsrSeg(userId int32, segments []int32, ex database.QueryExecutor) error 
 	return nil
 }
 
-func InsUsrTtlSeg(userId int32, segments map[int32]string, ttls map[int32]time.Time, ex database.QueryExecutor) error {
+func InsertUserTtlSegment(userId int32, segments map[int32]string, ttls map[int32]time.Time, ex database.QueryExecutor) error {
 	sqlString, values := BuildUserSegmentTtlInsertString(userId, segments, ttls)
 	_, err := ex.Exec(sqlString, values...)
 	if err != nil {
@@ -78,7 +78,7 @@ func InsUsrTtlSeg(userId int32, segments map[int32]string, ttls map[int32]time.T
 	return nil
 }
 
-func DelUsrSeg(userId int32, segmentsIds []int32, ex database.QueryExecutor) error {
+func DeleteUserSegment(userId int32, segmentsIds []int32, ex database.QueryExecutor) error {
 	sqlString := "delete from user_segment where user_id = $1 and segment_id = ANY($2)"
 	_, err := ex.Exec(sqlString, userId, pq.Array(segmentsIds))
 	if err != nil {

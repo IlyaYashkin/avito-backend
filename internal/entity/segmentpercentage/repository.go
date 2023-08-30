@@ -17,7 +17,7 @@ func NewSegmentPercentageRepository(ex database.QueryExecutor) *SegmentPercentag
 }
 
 func (repo *SegmentPercentageRepositoryDB) Save(segmentId int32, userPercentage float32) error {
-	_, err := repo.ex.Exec("insert into segment_percentage (segment_id, user_percentage) values ($1, $2)", segmentId, userPercentage)
+	_, err := repo.ex.Exec( /* sql */ `insert into segment_percentage (segment_id, user_percentage) values ($1, $2)`, segmentId, userPercentage)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 
 func BuildUserSegmentLogInsertString(rows []UserSegmentLog, operation string) (string, []interface{}) {
 	var sbSql strings.Builder
-	sbSql.WriteString("insert into user_segment_log (user_id, segment_name, operation, operation_timestamp) values ")
+	sbSql.WriteString( /* sql */ `insert into user_segment_log (user_id, segment_name, operation, operation_timestamp) values `)
 	values := []interface{}{}
 	var i int32
 	i = 1

@@ -33,7 +33,7 @@ func NewUserSegmentRepository(ex database.QueryExecutor) *UserSegmentRepositoryD
 }
 
 func (repo UserSegmentRepositoryDB) GetByUserId(userId int32) ([]UserSegment, error) {
-	rows, err := repo.ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
+	rows, err := repo.ex.Query( /* sql */ `select segment_id, ttl from user_segment where user_id = $1`, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (repo UserSegmentRepositoryDB) BulkSaveForUserWithTtl(userId int32, segment
 }
 
 func (repo UserSegmentRepositoryDB) BulkDeleteForUser(userId int32, segmentsIds []int32) error {
-	sqlString := "delete from user_segment where user_id = $1 and segment_id = ANY($2)"
+	sqlString := /* sql */ `delete from user_segment where user_id = $1 and segment_id = ANY($2)`
 	_, err := repo.ex.Exec(sqlString, userId, pq.Array(segmentsIds))
 	if err != nil {
 		return err

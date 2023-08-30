@@ -18,7 +18,7 @@ func NewUserRepository(ex database.QueryExecutor) *UserRepositoryDB {
 }
 
 func (repo *UserRepositoryDB) Save(userId int32) (bool, error) {
-	result, err := repo.ex.Exec("insert into users (id) values ($1) on conflict (id) do nothing", userId)
+	result, err := repo.ex.Exec( /* sql */ `insert into users (id) values ($1) on conflict (id) do nothing`, userId)
 	if err != nil {
 		return false, errors.New("insert user error")
 	}

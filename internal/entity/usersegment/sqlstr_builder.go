@@ -8,7 +8,7 @@ import (
 
 func BuildUserSegmentInsertString(userId int32, segments []int32) (string, []interface{}) {
 	var sbSql strings.Builder
-	sbSql.WriteString("insert into user_segment (user_id, segment_id) values ")
+	sbSql.WriteString( /* sql */ `insert into user_segment (user_id, segment_id) values `)
 	values := []interface{}{}
 	var i int32
 	i = 1
@@ -24,7 +24,7 @@ func BuildUserSegmentInsertString(userId int32, segments []int32) (string, []int
 
 func BuildUserSegmentTtlInsertString(userId int32, segments map[int32]string, ttls map[int32]time.Time) (string, []interface{}) {
 	var sbSql strings.Builder
-	sbSql.WriteString("insert into user_segment (user_id, segment_id, ttl) values ")
+	sbSql.WriteString( /* sql */ `insert into user_segment (user_id, segment_id, ttl) values `)
 	values := []interface{}{}
 	var i int32
 	i = 1

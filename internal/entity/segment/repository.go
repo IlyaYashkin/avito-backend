@@ -23,7 +23,7 @@ func NewSegmentRepository(ex database.QueryExecutor) *SegmentRepositoryDB {
 }
 
 func (repo *SegmentRepositoryDB) GetByName(segments []string) (map[int32]string, error) {
-	rows, err := repo.ex.Query("select id, name from segments where name = ANY($1)", pq.Array(segments))
+	rows, err := repo.ex.Query( /* sql */ `select id, name from segments where name = ANY($1)`, pq.Array(segments))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (repo *SegmentRepositoryDB) GetByName(segments []string) (map[int32]string,
 }
 
 func (repo *SegmentRepositoryDB) GetById(ids []int32) (map[int32]string, error) {
-	rows, err := repo.ex.Query("select id, name from segments where id = ANY($1)", pq.Array(ids))
+	rows, err := repo.ex.Query( /* sql */ `select id, name from segments where id = ANY($1)`, pq.Array(ids))
 	if err != nil {
 		return nil, err
 	}

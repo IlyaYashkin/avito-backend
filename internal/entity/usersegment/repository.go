@@ -8,8 +8,32 @@ import (
 	"github.com/lib/pq"
 )
 
-func SelectUserSegmentByUserId(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
-	rows, err := ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
+type UserSegment struct {
+	Id        int32
+	UserId    int32
+	SegmentId int32
+	Ttl       string
+}
+
+type UserSegmentRepository interface {
+	GetByUserId(userId int32) ([]UserSegment, error)
+	GetSegmentsNamesByUserId(userId int32) ([]string, error)
+	BulkSaveForUser(userId int32, segments []int32) error
+	BulkSaveForUserWithTtl(userId int32, segments []int32) error
+	BulkDeleteForUser(userId int32, segmentsIds []int32) error
+	BulkDeleteByExpiredTtl() ([]UserSegment, error)
+}
+
+type UserSegmentRepositoryDB struct {
+	ex database.QueryExecutor
+}
+
+func NewUserSegmentRepository(ex database.QueryExecutor) *UserSegmentRepositoryDB {
+	return &UserSegmentRepositoryDB{ex: ex}
+}
+
+func (repo UserSegmentRepositoryDB) GetByUserId(userId int32) ([]UserSegment, error) {
+	rows, err := repo.ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +58,8 @@ func SelectUserSegmentByUserId(userId int32, ex database.QueryExecutor) ([]UserS
 	return userSegments, nil
 }
 
-func SelectUserSegmentNamesByUserId(userId int32, ex database.QueryExecutor) ([]string, error) {
-	rows, err := ex.Query( /* sql */ `
+func (repo UserSegmentRepositoryDB) GetSegmentsNamesByUserId(userId int32) ([]string, error) {
+	rows, err := repo.ex.Query( /* sql */ `
 		select segments.name from user_segment
 		left join segments
 		on user_segment.segment_id = segments.id
@@ -64,39 +88,39 @@ func SelectUserSegmentNamesByUserId(userId int32, ex database.QueryExecutor) ([]
 	return segmentsNames, nil
 }
 
-func InsertUserSegment(userId int32, segments []int32, ex database.QueryExecutor) error {
+func (repo UserSegmentRepositoryDB) BulkSaveForUser(userId int32, segments []int32) error {
 	sqlString, values := BuildUserSegmentInsertString(userId, segments)
-	_, err := ex.Exec(sqlString, values...)
+	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func InsertUserTtlSegment(userId int32, segments map[int32]string, ttls map[int32]time.Time, ex database.QueryExecutor) error {
+func (repo UserSegmentRepositoryDB) BulkSaveForUserWithTtl(userId int32, segments map[int32]string, ttls map[int32]time.Time) error {
 	sqlString, values := BuildUserSegmentTtlInsertString(userId, segments, ttls)
-	_, err := ex.Exec(sqlString, values...)
+	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func DeleteUserSegment(userId int32, segmentsIds []int32, ex database.QueryExecutor) error {
+func (repo UserSegmentRepositoryDB) BulkDeleteForUser(userId int32, segmentsIds []int32) error {
 	sqlString := "delete from user_segment where user_id = $1 and segment_id = ANY($2)"
-	_, err := ex.Exec(sqlString, userId, pq.Array(segmentsIds))
+	_, err := repo.ex.Exec(sqlString, userId, pq.Array(segmentsIds))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func deleteExpiredTtlUserSegments(ex database.QueryExecutor) ([]UserSegment, error) {
+func (repo UserSegmentRepositoryDB) BulkDeleteByExpiredTtl() ([]UserSegment, error) {
 	sqlString := /* sql */ `
 		delete from user_segment where ttl < now()
 		returning user_id, segment_id
 	`
-	rows, err := ex.Query(sqlString)
+	rows, err := repo.ex.Query(sqlString)
 	if err != nil {
 		return nil, err
 	}

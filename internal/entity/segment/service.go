@@ -14,19 +14,21 @@ func createSegment(requestData RequestUpdateSegment) error {
 	}
 	defer tx.Rollback()
 
-	rowExists, err := IsSegmentExists(requestData.Name, tx)
+	segmentRepo := NewSegmentRepository(tx)
+	segmentPercentageRepo := segmentpercentage.NewSegmentPercentageRepository(tx)
+
+	rowExists, err := segmentRepo.IsExistsByName(requestData.Name)
 	if err != nil {
 		return err
 	}
 	if rowExists {
 		return errors.New("segment with this name already exists")
 	}
-
-	segmentId, err := InsertSegment(requestData.Name, tx)
+	segmentId, err := segmentRepo.Save(requestData.Name)
 	if err != nil {
 		return err
 	}
-	err = segmentpercentage.InsertSegmentPercentage(segmentId, requestData.UserPercentage, tx)
+	err = segmentPercentageRepo.Save(segmentId, requestData.UserPercentage)
 	if err != nil {
 		return err
 	}
@@ -42,7 +44,9 @@ func createSegment(requestData RequestUpdateSegment) error {
 func deleteSegment(requestData RequestUpdateSegment) error {
 	db := database.Get()
 
-	rowExists, err := IsSegmentExists(requestData.Name, db)
+	repo := NewSegmentRepository(db)
+
+	rowExists, err := repo.IsExistsByName(requestData.Name)
 	if err != nil {
 		return err
 	}
@@ -50,7 +54,7 @@ func deleteSegment(requestData RequestUpdateSegment) error {
 		return errors.New("segment with this name not exists")
 	}
 
-	err = DelSegment(requestData.Name, db)
+	err = repo.DeleteByName(requestData.Name)
 	if err != nil {
 		return err
 	}

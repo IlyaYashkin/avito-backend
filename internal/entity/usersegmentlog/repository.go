@@ -5,18 +5,38 @@ import (
 	"time"
 )
 
-func InsertLog(rows []UserSegmentLog, operation string, ex database.QueryExecutor) error {
+type UserSegmentLog struct {
+	UserId             int32
+	SegmentName        string
+	Operation          string
+	OperationTimestamp string
+}
+
+type SegmentRepository interface {
+	Save(rows []UserSegmentLog, operation string) error
+	Get(userId int32, date time.Time) ([]UserSegmentLog, error)
+}
+
+type UserSegmentLogRepositoryDB struct {
+	ex database.QueryExecutor
+}
+
+func NewUserSegmentLogRepository(ex database.QueryExecutor) *UserSegmentLogRepositoryDB {
+	return &UserSegmentLogRepositoryDB{ex: ex}
+}
+
+func (repo UserSegmentLogRepositoryDB) Save(rows []UserSegmentLog, operation string) error {
 	sqlString, values := BuildUserSegmentLogInsertString(rows, operation)
-	_, err := ex.Exec(sqlString, values...)
+	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func SelectLog(userId int32, date time.Time, ex database.QueryExecutor) ([]UserSegmentLog, error) {
+func (repo UserSegmentLogRepositoryDB) Get(userId int32, date time.Time) ([]UserSegmentLog, error) {
 	sqlString, values := BuildUserSegmentLogSelectString(userId, date)
-	rows, err := ex.Query(sqlString, values...)
+	rows, err := repo.ex.Query(sqlString, values...)
 	if err != nil {
 		return nil, err
 	}

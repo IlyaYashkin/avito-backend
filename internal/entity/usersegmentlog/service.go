@@ -8,13 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserSegmentLog struct {
-	UserId             int32
-	SegmentName        string
-	Operation          string
-	OperationTimestamp string
-}
-
 const LOG_OPERATION_ADD = "added"
 const LOG_OPERATION_ADD_PERCENTAGE = "added by percentage"
 const LOG_OPERATION_DELETE = "deleted"
@@ -24,7 +17,9 @@ func getUserSegmentLog(requestData RequestGetUserSegmentLog, w gin.ResponseWrite
 	db := database.Get()
 	writer := csv.NewWriter(w)
 
-	userSegmentLogs, err := SelectLog(requestData.UserId, requestData.Date, db)
+	userSegmentLogRepo := NewUserSegmentLogRepository(db)
+
+	userSegmentLogs, err := userSegmentLogRepo.Get(requestData.UserId, requestData.Date)
 	if err != nil {
 		return writer, err
 	}

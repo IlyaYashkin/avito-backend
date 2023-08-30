@@ -29,15 +29,17 @@ func BuildUserSegmentLogSelectString(userId int32, date time.Time) (string, []in
 	`)
 	var values []interface{}
 	var conditions []string
+	i := 1
 	if userId != 0 || !date.IsZero() {
 		sbSql.WriteString(" where ")
 	}
 	if userId != 0 {
-		conditions = append(conditions, "user_id = $1")
+		conditions = append(conditions, fmt.Sprintf("user_id = $%d", i))
 		values = append(values, userId)
+		i++
 	}
 	if !date.IsZero() {
-		conditions = append(conditions, "operation_timestamp <= $2")
+		conditions = append(conditions, fmt.Sprintf("operation_timestamp <= $%d", i))
 		values = append(values, date)
 	}
 	sbSql.WriteString(strings.Join(conditions, " and "))

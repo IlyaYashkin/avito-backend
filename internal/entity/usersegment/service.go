@@ -2,6 +2,7 @@ package usersegment
 
 import (
 	"avito-backend/internal/database"
+	"avito-backend/internal/entity/segment"
 	"avito-backend/internal/entity/segmentpercentage"
 	"avito-backend/internal/entity/user"
 	"avito-backend/internal/entity/usersegmentlog"
@@ -143,7 +144,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		return nil, nil
 	}
 
-	segments, err := SelectSegmentsByName(segmentsToAdd, tx)
+	segments, err := segment.SelectSegmentsByName(segmentsToAdd, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +196,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	for _, segmentTtl := range segmentsToAdd {
 		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.segment)
 	}
-	segments, err := SelectSegmentsByName(segmentsWithTtlArr, tx)
+	segments, err := segment.SelectSegmentsByName(segmentsWithTtlArr, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +260,7 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 		return nil, nil
 	}
 
-	segments, err := SelectSegmentsByName(segmentsToDelete, tx)
+	segments, err := segment.SelectSegmentsByName(segmentsToDelete, tx)
 	if err != nil {
 		return nil, err
 	}

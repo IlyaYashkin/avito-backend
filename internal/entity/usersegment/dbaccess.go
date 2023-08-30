@@ -8,32 +8,6 @@ import (
 	"github.com/lib/pq"
 )
 
-func SelectSegmentsByName(segments []string, ex database.QueryExecutor) (map[int32]string, error) {
-	rows, err := ex.Query("select id, name from segments where name = ANY($1)", pq.Array(segments))
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	segmentsMap := make(map[int32]string)
-
-	for rows.Next() {
-		var id int32
-		var name string
-		err := rows.Scan(&id, &name)
-		if err != nil {
-			return segmentsMap, err
-		}
-		segmentsMap[id] = name
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return segmentsMap, nil
-}
-
 func GetUserSegmentsById(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
 	rows, err := ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
 	if err != nil {

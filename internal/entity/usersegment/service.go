@@ -29,10 +29,10 @@ type requestSegmentWithTtl struct {
 	ttl     string
 }
 
-const ttlTimeFormat = time.RFC3339
+const TTL_TIME_FORMAT = time.RFC3339
 
 func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegments, error) {
-	db := database.Open()
+	db := database.Get()
 	tx, err := db.Begin()
 	if err != nil {
 		return UpdatedUserSegments{}, err
@@ -87,6 +87,73 @@ func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegme
 	}
 
 	return updatedUserSegments, nil
+}
+
+func getUserSegments(userId int32) ([]string, error) {
+	db := database.Get()
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	err = clearExpiredTtlUserSegments(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	userSegmentsNames, err := SelectUserSegmentNamesByUserId(userId, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+
+	var segmentsRs []string
+	for _, userSegmentName := range userSegmentsNames {
+		segmentsRs = append(segmentsRs, userSegmentName)
+	}
+
+	return segmentsRs, nil
+}
+
+func clearExpiredTtlUserSegments(ex database.QueryExecutor) error {
+	deletedSegments, err := deleteExpiredTtlUserSegments(ex)
+	if err != nil {
+		return err
+	}
+
+	if len(deletedSegments) == 0 {
+		return nil
+	}
+
+	var segmentsIds []int32
+	for _, deletedSegment := range deletedSegments {
+		segmentsIds = append(segmentsIds, deletedSegment.SegmentId)
+	}
+
+	segments, err := segment.SelectSegmentsById(segmentsIds, ex)
+	if err != nil {
+		return err
+	}
+
+	var logRows []usersegmentlog.UserSegmentLog
+	for _, deletedSegment := range deletedSegments {
+		logRows = append(
+			logRows,
+			usersegmentlog.UserSegmentLog{
+				UserId:      deletedSegment.UserId,
+				SegmentName: segments[deletedSegment.SegmentId],
+			},
+		)
+	}
+
+	err = usersegmentlog.InsertLog(logRows, "deletion by ttl", ex)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
@@ -148,7 +215,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUserSegmentsById(userId, tx)
+	userSegments, err := SelectUserSegmentByUserId(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +240,12 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		return nil, err
 	}
 
-	err = usersegmentlog.InsertLog(userId, segments, "addition", tx)
+	var logRows []usersegmentlog.UserSegmentLog
+	for _, segment := range segments {
+		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
+	}
+
+	err = usersegmentlog.InsertLog(logRows, "addition", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +272,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUserSegmentsById(userId, tx)
+	userSegments, err := SelectUserSegmentByUserId(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +295,12 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 		return nil, err
 	}
 
-	err = usersegmentlog.InsertLog(userId, segments, "addition", tx)
+	var logRows []usersegmentlog.UserSegmentLog
+	for _, segment := range segments {
+		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
+	}
+
+	err = usersegmentlog.InsertLog(logRows, "addition", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +317,7 @@ func sanitizeTtls(segments map[int32]string, ttls map[int32]string, userSegments
 	userTimeTtls := getUserSegmentsTtlsMap(userSegments)
 
 	for id, ttl := range ttls {
-		time, err := time.Parse(ttlTimeFormat, ttl)
+		time, err := time.Parse(TTL_TIME_FORMAT, ttl)
 		if err != nil {
 			delete(segments, id)
 			continue
@@ -264,7 +341,7 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 	if err != nil {
 		return nil, err
 	}
-	userSegments, err := GetUserSegmentsById(userId, tx)
+	userSegments, err := SelectUserSegmentByUserId(userId, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +365,12 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 		return nil, err
 	}
 
-	err = usersegmentlog.InsertLog(userId, segments, "deletion", tx)
+	var logRows []usersegmentlog.UserSegmentLog
+	for _, segment := range segments {
+		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
+	}
+
+	err = usersegmentlog.InsertLog(logRows, "deletion", tx)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +395,7 @@ func getUserSegmentsIds(userSegments []UserSegment) []int32 {
 func getUserSegmentsTtlsMap(userSegments []UserSegment) map[int32]time.Time {
 	userSegmentsTtlsMap := make(map[int32]time.Time, len(userSegments))
 	for _, userSegment := range userSegments {
-		ttlTime, _ := time.Parse(ttlTimeFormat, userSegment.Ttl)
+		ttlTime, _ := time.Parse(TTL_TIME_FORMAT, userSegment.Ttl)
 		userSegmentsTtlsMap[userSegment.SegmentId] = ttlTime
 	}
 	return userSegmentsTtlsMap

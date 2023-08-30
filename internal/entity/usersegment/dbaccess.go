@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func GetUserSegmentsById(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
+func SelectUserSegmentByUserId(userId int32, ex database.QueryExecutor) ([]UserSegment, error) {
 	rows, err := ex.Query("select segment_id, ttl from user_segment where user_id = $1", userId)
 	if err != nil {
 		return nil, err
@@ -32,6 +32,36 @@ func GetUserSegmentsById(userId int32, ex database.QueryExecutor) ([]UserSegment
 	}
 
 	return userSegments, nil
+}
+
+func SelectUserSegmentNamesByUserId(userId int32, ex database.QueryExecutor) ([]string, error) {
+	rows, err := ex.Query( /* sql */ `
+		select segments.name from user_segment
+		left join segments
+		on user_segment.segment_id = segments.id
+		where user_id = $1
+	`, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var segmentsNames []string
+
+	for rows.Next() {
+		var name string
+		err := rows.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		segmentsNames = append(segmentsNames, name)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return segmentsNames, nil
 }
 
 func InsertUserSegment(userId int32, segments []int32, ex database.QueryExecutor) error {
@@ -59,4 +89,33 @@ func DeleteUserSegment(userId int32, segmentsIds []int32, ex database.QueryExecu
 		return err
 	}
 	return nil
+}
+
+func deleteExpiredTtlUserSegments(ex database.QueryExecutor) ([]UserSegment, error) {
+	sqlString := /* sql */ `
+		delete from user_segment where ttl < now()
+		returning user_id, segment_id
+	`
+	rows, err := ex.Query(sqlString)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	deletedSegments := []UserSegment{}
+	for rows.Next() {
+		var user_id int32
+		var segment_id int32
+		err := rows.Scan(&user_id, &segment_id)
+		if err != nil {
+			return nil, err
+		}
+		deletedSegments = append(deletedSegments, UserSegment{UserId: user_id, SegmentId: segment_id})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return deletedSegments, nil
 }

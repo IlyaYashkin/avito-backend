@@ -32,6 +32,32 @@ func SelectSegmentsByName(segments []string, ex database.QueryExecutor) (map[int
 	return segmentsMap, nil
 }
 
+func SelectSegmentsById(segmentsIds []int32, ex database.QueryExecutor) (map[int32]string, error) {
+	rows, err := ex.Query("select id, name from segments where id = ANY($1)", pq.Array(segmentsIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	segmentsMap := make(map[int32]string)
+
+	for rows.Next() {
+		var id int32
+		var name string
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return segmentsMap, err
+		}
+		segmentsMap[id] = name
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return segmentsMap, nil
+}
+
 func IsSegmentExists(name string, ex database.QueryExecutor) (bool, error) {
 	var rowExists bool
 	err := ex.QueryRow( /* sql */ `select exists(select true from segments where name=$1)`, name).Scan(&rowExists)

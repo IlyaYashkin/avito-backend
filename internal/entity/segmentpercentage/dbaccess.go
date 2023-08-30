@@ -32,6 +32,7 @@ func PickSegments(ex database.QueryExecutor) ([]int32, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var segments []int32
 	for rows.Next() {

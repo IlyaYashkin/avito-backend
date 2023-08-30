@@ -1,6 +1,7 @@
 package segment
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,12 +15,14 @@ type RequestUpdateSegment struct {
 func CreateSegment(c *gin.Context) {
 	var requestData RequestUpdateSegment
 	if err := c.ShouldBindJSON(&requestData); err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": "bind json error"}})
 		return
 	}
 
 	err := createSegment(requestData)
 	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
 		return
 	}
@@ -39,12 +42,14 @@ func CreateSegment(c *gin.Context) {
 func DeleteSegment(c *gin.Context) {
 	var requestData RequestUpdateSegment
 	if err := c.ShouldBindJSON(&requestData); err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": "bind json error"}})
 		return
 	}
 
 	err := deleteSegment(requestData)
 	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
 		return
 	}

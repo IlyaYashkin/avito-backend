@@ -21,3 +21,19 @@ func BuildUserSegmentLogInsertString(userId int32, segments map[int32]string, op
 
 	return sqlString, values
 }
+
+func BuildUserSegmentLogInsertString123(rows []UserSegmentLog, operation string) (string, []interface{}) {
+	var sbSql strings.Builder
+	sbSql.WriteString("insert into user_segment_log (user_id, segment_name, operation, operation_timestamp) values ")
+	values := []interface{}{}
+	var i int32
+	i = 1
+	for _, row := range rows {
+		values = append(values, row.UserId, row.SegmentName, operation, time.Now())
+		sbSql.WriteString(fmt.Sprintf("($%d,$%d,$%d,$%d),", i, i+1, i+2, i+3))
+		i += 4
+	}
+	sqlString := strings.TrimSuffix(sbSql.String(), ",")
+
+	return sqlString, values
+}

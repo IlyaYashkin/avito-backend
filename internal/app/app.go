@@ -18,6 +18,8 @@ func Start() {
 	engine.POST("/create-segment", segment.CreateSegment)
 	engine.DELETE("/delete-segment", segment.DeleteSegment)
 	engine.POST("/add-segments-to-user", usersegment.UpdateUserSegments)
+	engine.GET("/get-user-segments/:user_id", usersegment.GetUserSegments)
+	// engine.GET("/get-user-segment-log/*user_id", usersegment.GetUserSegments)
 
 	engine.Run("0.0.0.0:8080")
 }

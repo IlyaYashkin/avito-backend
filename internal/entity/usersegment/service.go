@@ -19,8 +19,8 @@ type UserSegment struct {
 
 type UpdatedUserSegments struct {
 	AddedSegments           []string
-	AddedSegmentsTtl        []string
-	AddedSegmentsPercentage []string
+	AddedTtlSegments        []string
+	AddedPercentageSegments []string
 	DeletedSegments         []string
 }
 
@@ -44,8 +44,9 @@ func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegme
 		return UpdatedUserSegments{}, err
 	}
 
+	var addedPercentageSegments []string
 	if isUsrInserted {
-		_, err = addPercentageSegments(requestData.UserId, tx)
+		addedPercentageSegments, err = addPercentageSegments(requestData.UserId, tx)
 		if err != nil {
 			return UpdatedUserSegments{}, err
 		}
@@ -81,9 +82,10 @@ func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegme
 	tx.Commit()
 
 	updatedUserSegments := UpdatedUserSegments{
-		AddedSegments:    addedSegments,
-		AddedSegmentsTtl: addedTtlSegments,
-		DeletedSegments:  deletedSegments,
+		AddedSegments:           addedSegments,
+		AddedTtlSegments:        addedTtlSegments,
+		AddedPercentageSegments: addedPercentageSegments,
+		DeletedSegments:         deletedSegments,
 	}
 
 	return updatedUserSegments, nil
@@ -148,7 +150,7 @@ func clearExpiredTtlUserSegments(ex database.QueryExecutor) error {
 		)
 	}
 
-	err = usersegmentlog.InsertLog(logRows, "deletion by ttl", ex)
+	err = usersegmentlog.InsertLog(logRows, usersegmentlog.LOG_OPERATION_DELETE_TTL, ex)
 	if err != nil {
 		return err
 	}
@@ -189,21 +191,34 @@ func addPercentageSegments(userId int32, tx *sql.Tx) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	segments, err := segmentpercentage.PickSegments(tx)
+	segmentsIds, err := segmentpercentage.PickSegments(tx)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(segments) == 0 {
+	if len(segmentsIds) == 0 {
 		return nil, nil
 	}
 
-	err = InsertUserSegment(userId, segments, tx)
+	segments, err := segment.SelectSegmentsById(segmentsIds, tx)
+
+	err = InsertUserSegment(userId, segmentsIds, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	var logRows []usersegmentlog.UserSegmentLog
+	for _, segment := range segments {
+		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
+	}
+
+	usersegmentlog.InsertLog(logRows, usersegmentlog.LOG_OPERATION_ADD_PERCENTAGE, tx)
+
+	var rsSegments []string
+	for _, segment := range segments {
+		rsSegments = append(rsSegments, segment)
+	}
+	return rsSegments, nil
 }
 
 func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, error) {
@@ -245,7 +260,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
 	}
 
-	err = usersegmentlog.InsertLog(logRows, "addition", tx)
+	err = usersegmentlog.InsertLog(logRows, usersegmentlog.LOG_OPERATION_ADD, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +315,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
 	}
 
-	err = usersegmentlog.InsertLog(logRows, "addition", tx)
+	err = usersegmentlog.InsertLog(logRows, usersegmentlog.LOG_OPERATION_ADD, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +385,7 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 		logRows = append(logRows, usersegmentlog.UserSegmentLog{UserId: userId, SegmentName: segment})
 	}
 
-	err = usersegmentlog.InsertLog(logRows, "deletion", tx)
+	err = usersegmentlog.InsertLog(logRows, usersegmentlog.LOG_OPERATION_DELETE, tx)
 	if err != nil {
 		return nil, err
 	}

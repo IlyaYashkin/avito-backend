@@ -20,7 +20,7 @@ func CreateSegment(c *gin.Context) {
 		return
 	}
 
-	err := createSegment(requestData)
+	err := CreateSegmentService(requestData)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
@@ -47,7 +47,7 @@ func DeleteSegment(c *gin.Context) {
 		return
 	}
 
-	err := deleteSegment(requestData)
+	err := DeleteSegmentService(requestData)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})

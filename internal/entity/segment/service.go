@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-func createSegment(requestData RequestUpdateSegment) error {
+func CreateSegmentService(requestData RequestUpdateSegment) error {
 	db := database.Get()
 	tx, err := db.Begin()
 	if err != nil {
@@ -28,9 +28,11 @@ func createSegment(requestData RequestUpdateSegment) error {
 	if err != nil {
 		return err
 	}
-	err = segmentPercentageRepo.Save(segmentId, requestData.UserPercentage)
-	if err != nil {
-		return err
+	if requestData.UserPercentage != 0 {
+		err = segmentPercentageRepo.Save(segmentId, requestData.UserPercentage)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = tx.Commit()
@@ -41,7 +43,7 @@ func createSegment(requestData RequestUpdateSegment) error {
 	return err
 }
 
-func deleteSegment(requestData RequestUpdateSegment) error {
+func DeleteSegmentService(requestData RequestUpdateSegment) error {
 	db := database.Get()
 
 	repo := NewSegmentRepository(db)

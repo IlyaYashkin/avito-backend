@@ -13,7 +13,7 @@ const LOG_OPERATION_ADD_PERCENTAGE = "added by percentage"
 const LOG_OPERATION_DELETE = "deleted"
 const LOG_OPERATION_DELETE_TTL = "deleted by ttl"
 
-func getUserSegmentLog(requestData RequestGetUserSegmentLog, w gin.ResponseWriter) (*csv.Writer, error) {
+func GetUserSegmentLogService(requestData RequestGetUserSegmentLog, w gin.ResponseWriter) (*csv.Writer, error) {
 	db := database.Get()
 	writer := csv.NewWriter(w)
 

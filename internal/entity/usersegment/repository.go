@@ -16,6 +16,7 @@ type UserSegment struct {
 }
 
 type UserSegmentRepository interface {
+	Get() ([]UserSegment, error)
 	GetByUserId(userId int32) ([]UserSegment, error)
 	GetSegmentsNamesByUserId(userId int32) ([]string, error)
 	BulkSaveForUser(userId int32, segments []int32) error
@@ -30,6 +31,34 @@ type UserSegmentRepositoryDB struct {
 
 func NewUserSegmentRepository(ex database.QueryExecutor) *UserSegmentRepositoryDB {
 	return &UserSegmentRepositoryDB{ex: ex}
+}
+
+func (repo UserSegmentRepositoryDB) Get() ([]UserSegment, error) {
+	rows, err := repo.ex.Query( /* sql */ `select * from user_segment`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userSegments []UserSegment
+
+	for rows.Next() {
+		var id int32
+		var user_id int32
+		var segment_id int32
+		var ttl sql.NullString
+		err := rows.Scan(&id, &user_id, &segment_id, &ttl)
+		if err != nil {
+			return nil, err
+		}
+		userSegments = append(userSegments, UserSegment{Id: id, UserId: user_id, SegmentId: segment_id, Ttl: ttl.String})
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userSegments, nil
 }
 
 func (repo UserSegmentRepositoryDB) GetByUserId(userId int32) ([]UserSegment, error) {

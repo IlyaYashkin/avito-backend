@@ -17,14 +17,14 @@ type UpdatedUserSegments struct {
 	DeletedSegments         []string
 }
 
-type requestSegmentWithTtl struct {
-	segment string
-	ttl     string
+type RequestSegmentWithTtl struct {
+	Segment string
+	Ttl     string
 }
 
 const TTL_TIME_FORMAT = time.RFC3339
 
-func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegments, error) {
+func UpdateUserSegmentsService(requestData RequestUpdateUserSegments) (UpdatedUserSegments, error) {
 	db := database.Get()
 	tx, err := db.Begin()
 	if err != nil {
@@ -86,7 +86,7 @@ func updateUserSegments(requestData RequestUpdateUserSegments) (UpdatedUserSegme
 	return updatedUserSegments, nil
 }
 
-func getUserSegments(userId int32) ([]string, error) {
+func GetUserSegmentsService(userId int32) ([]string, error) {
 	db := database.Get()
 	tx, err := db.Begin()
 	if err != nil {
@@ -96,7 +96,7 @@ func getUserSegments(userId int32) ([]string, error) {
 
 	userSegmentRepo := NewUserSegmentRepository(tx)
 
-	err = clearExpiredTtlUserSegments(tx)
+	err = ClearExpiredTtlUserSegments(tx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func getUserSegments(userId int32) ([]string, error) {
 	return segmentsRs, nil
 }
 
-func clearExpiredTtlUserSegments(ex database.QueryExecutor) error {
+func ClearExpiredTtlUserSegments(ex database.QueryExecutor) error {
 	segmentRepo := segment.NewSegmentRepository(ex)
 	userSegmentRepo := NewUserSegmentRepository(ex)
 	userSegmentLogRepo := usersegmentlog.NewUserSegmentLogRepository(ex)
@@ -246,7 +246,7 @@ func addSegments(userId int32, segmentsToAdd []string, tx *sql.Tx) ([]string, er
 	return rsSegments, nil
 }
 
-func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
+func addTtlSegments(userId int32, segmentsToAdd []RequestSegmentWithTtl, tx *sql.Tx) ([]string, error) {
 	if len(segmentsToAdd) == 0 {
 		return nil, nil
 	}
@@ -257,7 +257,7 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 
 	var segmentsWithTtlArr []string
 	for _, segmentTtl := range segmentsToAdd {
-		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.segment)
+		segmentsWithTtlArr = append(segmentsWithTtlArr, segmentTtl.Segment)
 	}
 	segments, err := segmentRepo.GetByName(segmentsWithTtlArr)
 	if err != nil {
@@ -270,8 +270,8 @@ func addTtlSegments(userId int32, segmentsToAdd []requestSegmentWithTtl, tx *sql
 	reversedSegments := flipSegmentsMap(segments)
 	ttls := make(map[int32]string)
 	for _, segmentTtl := range segmentsToAdd {
-		if id, exists := reversedSegments[segmentTtl.segment]; exists {
-			ttls[id] = segmentTtl.ttl
+		if id, exists := reversedSegments[segmentTtl.Segment]; exists {
+			ttls[id] = segmentTtl.Ttl
 		}
 	}
 	segments, timeTtls := sanitizeTtls(segments, ttls, userSegments)
@@ -352,9 +352,9 @@ func deleteSegments(userId int32, segmentsToDelete []string, tx *sql.Tx) ([]stri
 	return rsSegments, nil
 }
 
-func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
+func splitSegments(segments []any) ([]string, []RequestSegmentWithTtl) {
 	var addSegments []string
-	var addSegmentsWithTtl []requestSegmentWithTtl
+	var addSegmentsWithTtl []RequestSegmentWithTtl
 
 	for _, value := range segments {
 		segmentTtl, ok := value.(map[string]interface{})
@@ -363,9 +363,9 @@ func splitSegments(segments []any) ([]string, []requestSegmentWithTtl) {
 			ttl, ttlOk := segmentTtl["ttl"].(string)
 
 			if segmentOk && ttlOk {
-				segmentTtlStruct := requestSegmentWithTtl{
-					segment: segment,
-					ttl:     ttl,
+				segmentTtlStruct := RequestSegmentWithTtl{
+					Segment: segment,
+					Ttl:     ttl,
 				}
 				addSegmentsWithTtl = append(addSegmentsWithTtl, segmentTtlStruct)
 				continue

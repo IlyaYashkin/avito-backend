@@ -14,6 +14,8 @@ type RequestGetUserSegmentLog struct {
 	Date   time.Time
 }
 
+const DATE_FORMAT = "2006-01"
+
 func GetUserSegmentLog(c *gin.Context) {
 	c.Header("Content-Disposition", "inline; filename=\"user-segment-log.csv\"") // Заменили "attachment" на "inline"
 	c.Header("Content-Type", "text/csv")
@@ -33,7 +35,7 @@ func GetUserSegmentLog(c *gin.Context) {
 		requestData.UserId = int32(userId)
 	}
 	if dateParam != "" {
-		date, err := time.Parse("2006-01", dateParam)
+		date, err := time.Parse(DATE_FORMAT, dateParam)
 		if err != nil {
 			log.Println(err)
 			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
@@ -44,7 +46,7 @@ func GetUserSegmentLog(c *gin.Context) {
 
 	log.Println(RequestGetUserSegmentLog{}.Date.IsZero())
 
-	writer, err := getUserSegmentLog(requestData, c.Writer)
+	writer, err := GetUserSegmentLogService(requestData, c.Writer)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})

@@ -26,7 +26,7 @@ func UpdateUserSegments(c *gin.Context) {
 		return
 	}
 
-	updatedUserSegments, err := updateUserSegments(requestData)
+	updatedUserSegments, err := UpdateUserSegmentsService(requestData)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})
@@ -39,6 +39,7 @@ func UpdateUserSegments(c *gin.Context) {
 			"status": "success",
 			"data": gin.H{
 				"message":                   "User segments updated",
+				"user_id":                   requestData.UserId,
 				"added_segments":            updatedUserSegments.AddedSegments,
 				"added_ttl_segments":        updatedUserSegments.AddedTtlSegments,
 				"added_percentage_segments": updatedUserSegments.AddedPercentageSegments,
@@ -66,7 +67,7 @@ func GetUserSegments(c *gin.Context) {
 		return
 	}
 
-	userSegments, err := getUserSegments(int32(userId))
+	userSegments, err := GetUserSegmentsService(int32(userId))
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "data": gin.H{"message": err.Error()}})

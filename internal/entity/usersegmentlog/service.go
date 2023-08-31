@@ -24,6 +24,8 @@ func GetUserSegmentLogService(requestData RequestGetUserSegmentLog, w gin.Respon
 		return writer, err
 	}
 
+	writer.Write([]string{"user_id", "segment_name", "operation", "operation_time"})
+
 	for _, userSegmentLog := range userSegmentLogs {
 		writer.Write(
 			[]string{

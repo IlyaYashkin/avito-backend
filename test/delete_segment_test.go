@@ -19,7 +19,10 @@ func TestDeleteSegment(t *testing.T) {
 
 	utils.ClearDB()
 
-	segment.CreateSegmentService(segment.RequestUpdateSegment{Name: "AVITO_VOICE_100"})
+	err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: "AVITO_VOICE_100"})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	router := gin.Default()
 	router.POST("/delete-segment", segment.DeleteSegment)

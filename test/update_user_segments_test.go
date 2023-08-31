@@ -34,7 +34,10 @@ func TestAddUserSegments(t *testing.T) {
 	var segmentStrs []string
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		segmentStrs = append(segmentStrs, segmentStr)
 	}
 
@@ -77,7 +80,10 @@ func TestDeleteUserSegments(t *testing.T) {
 	var segmentStrs []any
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		segmentStrs = append(segmentStrs, segmentStr)
 	}
 	_, err := usersegment.UpdateUserSegmentsService(usersegment.RequestUpdateUserSegments{UserId: userId, AddSegments: segmentStrs})
@@ -124,7 +130,10 @@ func TestGetUserSegments(t *testing.T) {
 	var segmentStrs []any
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		segmentStrs = append(segmentStrs, segmentStr)
 	}
 	_, err := usersegment.UpdateUserSegmentsService(usersegment.RequestUpdateUserSegments{UserId: userId, AddSegments: segmentStrs})
@@ -168,7 +177,10 @@ func TestUserSegmentLog(t *testing.T) {
 	var deleteSegments []string
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		addSegments = append(addSegments, segmentStr)
 		deleteSegments = append(deleteSegments, segmentStr)
 	}
@@ -217,7 +229,10 @@ func TestUserSegmentLogUserId(t *testing.T) {
 	var addSegments []any
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		addSegments = append(addSegments, segmentStr)
 	}
 	_, err := usersegment.UpdateUserSegmentsService(usersegment.RequestUpdateUserSegments{UserId: userId, AddSegments: addSegments})
@@ -269,7 +284,10 @@ func TestUserSegmentLogDate(t *testing.T) {
 	var addSegments []any
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		addSegments = append(addSegments, segmentStr)
 	}
 	_, err := usersegment.UpdateUserSegmentsService(usersegment.RequestUpdateUserSegments{UserId: userId, AddSegments: addSegments})
@@ -320,7 +338,10 @@ func TestUserSegmentTtl(t *testing.T) {
 	var addTtlSegments []any
 	for i := 1; i < numSegments; i++ {
 		segmentStr := fmt.Sprintf("AVITO_VOICE_%d", 10*i)
-		segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentStr})
+		if err != nil {
+			t.Fatal(err)
+		}
 		date := time.Now()
 		date = date.AddDate(0, 0, -1)
 		addTtlSegments = append(addTtlSegments, map[string]interface{}{"segment": segmentStr, "ttl": date.Format(usersegment.TTL_TIME_FORMAT)})
@@ -385,7 +406,6 @@ func TestSegmentPercentage(t *testing.T) {
 	}
 
 	userSegmentRepo := usersegment.NewUserSegmentRepository(db)
-
 	userSegments, err := userSegmentRepo.Get()
 	if err != nil {
 		t.Fatal(err)

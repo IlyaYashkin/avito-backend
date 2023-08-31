@@ -14,7 +14,7 @@ docker exec avito-backend-app-1 go test ./test/ -v
 
 ---
 
-## Добваление сегмента ```POST /create-segment```
+## Добавление сегмента ```POST /create-segment```
 #### Тело запроса
 ```json
 {

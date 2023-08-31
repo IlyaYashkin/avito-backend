@@ -141,3 +141,5 @@ Query параметры
 
 #### Ответ
 Происходит скачивание csv файла с данными
+
+Заголовок csv файла: user_id,segment_name,operation,operation_time

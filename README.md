@@ -11,6 +11,9 @@ docker-compose up
 ```sh
 docker exec avito-backend-app-1 go test ./test/ -v
 ```
+
+[Коллекция postman](https://github.com/IlyaYashkin/avito-backend/blob/master/Avito%20backend.postman_collection.json)
+
 ## Возникшие вопросы
 #### Доп. задание 1
 

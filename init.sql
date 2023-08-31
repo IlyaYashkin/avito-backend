@@ -34,7 +34,7 @@ create table user_segment_log (
     user_id integer not null,
     segment_name varchar not null,
     operation varchar not null,
-    operation_timestamp timestamp
+    operation_timestamp timestamp not null
 );
 
 create table segment_percentage (

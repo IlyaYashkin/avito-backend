@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func BuildUserSegmentLogInsertString(rows []UserSegmentLog, operation string) (string, []interface{}) {
+func buildUserSegmentLogInsertString(rows []UserSegmentLog, operation string) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString( /* sql */ `insert into user_segment_log (user_id, segment_name, operation, operation_timestamp) values `)
 	values := []interface{}{}
@@ -21,7 +21,7 @@ func BuildUserSegmentLogInsertString(rows []UserSegmentLog, operation string) (s
 	return sqlString, values
 }
 
-func BuildUserSegmentLogSelectString(userId int32, date time.Time) (string, []interface{}) {
+func buildUserSegmentLogSelectString(userId int32, date time.Time) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString( /* sql */ `
 		select user_id, segment_name, operation, operation_timestamp

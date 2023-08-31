@@ -118,7 +118,7 @@ func (repo UserSegmentRepositoryDB) GetSegmentsNamesByUserId(userId int32) ([]st
 }
 
 func (repo UserSegmentRepositoryDB) BulkSaveForUser(userId int32, segments []int32) error {
-	sqlString, values := BuildUserSegmentInsertString(userId, segments)
+	sqlString, values := buildUserSegmentInsertString(userId, segments)
 	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (repo UserSegmentRepositoryDB) BulkSaveForUser(userId int32, segments []int
 }
 
 func (repo UserSegmentRepositoryDB) BulkSaveForUserWithTtl(userId int32, segments map[int32]string, ttls map[int32]time.Time) error {
-	sqlString, values := BuildUserSegmentTtlInsertString(userId, segments, ttls)
+	sqlString, values := buildUserSegmentTtlInsertString(userId, segments, ttls)
 	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err

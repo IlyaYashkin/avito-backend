@@ -26,7 +26,7 @@ func NewUserSegmentLogRepository(ex database.QueryExecutor) *UserSegmentLogRepos
 }
 
 func (repo UserSegmentLogRepositoryDB) Save(rows []UserSegmentLog, operation string) error {
-	sqlString, values := BuildUserSegmentLogInsertString(rows, operation)
+	sqlString, values := buildUserSegmentLogInsertString(rows, operation)
 	_, err := repo.ex.Exec(sqlString, values...)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func (repo UserSegmentLogRepositoryDB) Save(rows []UserSegmentLog, operation str
 }
 
 func (repo UserSegmentLogRepositoryDB) Get(userId int32, date time.Time) ([]UserSegmentLog, error) {
-	sqlString, values := BuildUserSegmentLogSelectString(userId, date)
+	sqlString, values := buildUserSegmentLogSelectString(userId, date)
 	rows, err := repo.ex.Query(sqlString, values...)
 	if err != nil {
 		return nil, err

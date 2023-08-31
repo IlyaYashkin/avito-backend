@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func BuildUserSegmentInsertString(userId int32, segments []int32) (string, []interface{}) {
+func buildUserSegmentInsertString(userId int32, segments []int32) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString( /* sql */ `insert into user_segment (user_id, segment_id) values `)
 	values := []interface{}{}
@@ -22,7 +22,7 @@ func BuildUserSegmentInsertString(userId int32, segments []int32) (string, []int
 	return sqlString, values
 }
 
-func BuildUserSegmentTtlInsertString(userId int32, segments map[int32]string, ttls map[int32]time.Time) (string, []interface{}) {
+func buildUserSegmentTtlInsertString(userId int32, segments map[int32]string, ttls map[int32]time.Time) (string, []interface{}) {
 	var sbSql strings.Builder
 	sbSql.WriteString( /* sql */ `insert into user_segment (user_id, segment_id, ttl) values `)
 	values := []interface{}{}

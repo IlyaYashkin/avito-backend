@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "4dc0f85c-7f6a-4253-b6a4-d74c705d46ec",
+		"name": "Avito backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20621924"
+	},
+	"item": [
+		{
+			"name": "Create segment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"AVITO_PERFORMANCE_VAS\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/create-segment",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"create-segment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete segment",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"AVITO_VOICE_MESSAGES\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/delete-segment",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"delete-segment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user segments",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 1000,\n    \"add_segments\": [\n        \"AVITO_VOICE_30\",\n        \"AVITO_VOICE_40\",\n        {\n            \"segment\": \"AVITO_VOICE_50\",\n            \"ttl\": \"2023-08-29T16:18:17Z\"\n        }\n    ],\n    \"delete_segments\": [\n        \"AVITO_VOICE_10\",\n        \"AVITO_VOICE_20\"\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/update-user-segments",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"update-user-segments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get user segments",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get user segment log",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/get-user-segments/1000",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"get-user-segments",
+						"1000"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

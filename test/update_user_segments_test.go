@@ -391,7 +391,7 @@ func TestSegmentPercentage(t *testing.T) {
 
 	segmentName := "AVITO_VOICE_30"
 	segmentPercentage := 10
-	numUsers := 10
+	numUsers := 1000
 
 	err := segment.CreateSegmentService(segment.RequestUpdateSegment{Name: segmentName, UserPercentage: float32(segmentPercentage)})
 	if err != nil {
@@ -415,4 +415,6 @@ func TestSegmentPercentage(t *testing.T) {
 	assertion := int(math.Abs(expectedRowsNum-float64(len(userSegments)))) <= 1
 
 	assert.Equal(t, true, assertion)
+
+	utils.ClearDB()
 }
